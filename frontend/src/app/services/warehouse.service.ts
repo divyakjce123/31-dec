@@ -8,7 +8,7 @@ import { WarehouseConfig } from 'src/app/models/warehouse.models';
   providedIn: 'root'
 })
 export class WarehouseService {
-  private apiUrl = 'http://localhost:6000/api';
+  private apiUrl = 'http://localhost:5000/api';
 
   constructor(private http: HttpClient) { }
 
