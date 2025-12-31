@@ -29,7 +29,7 @@ export interface SideAisleConfig {
   num_floors: number;  // Y_position (floors)
   num_rows: number;    // X_position (rows)
   num_aisles: number;  // Number of horizontal aisles
-  depth: number;       // Number of Deep (depth dimension)
+  depth: number;       // Number of Deep (depth dimension) - frontend uses depth, maps to deep for backend
   custom_gaps: number[];  // Gaps between aisles: (num_aisles * depth) - 1 gaps
   gap_front: number;
   gap_back: number;
@@ -40,8 +40,8 @@ export interface SideAisleConfig {
 
 export interface WorkstationConfig {
   workstation_index: number;
-  aisle_width: number;  // Central aisle width (A_W)
-  aisle_width_unit: string;
+  aisle_space: number;  // Central aisle width (A_W) - matches backend field name
+  aisle_space_unit: string;  // matches backend field name
   left_side_config: SideAisleConfig;
   right_side_config: SideAisleConfig;
   pallet_configs: PalletConfig[];

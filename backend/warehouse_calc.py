@@ -46,8 +46,8 @@ class WarehouseCalculator:
             ws_x = i * (workstation_width + wg)
 
             aisle_width = self.to_cm(
-                ws_conf['aisle_width'],
-                ws_conf.get('aisle_width_unit', 'cm')
+                ws_conf['aisle_space'],  # Changed from aisle_width to aisle_space
+                ws_conf.get('aisle_space_unit', 'cm')  # Changed from aisle_width_unit to aisle_space_unit
             )
 
             side_width = (workstation_width - aisle_width) / 2
@@ -131,7 +131,7 @@ class WarehouseCalculator:
         rows = cfg['num_rows']
         floors = cfg['num_floors']
         num_aisles = cfg['num_aisles']
-        depth = cfg['depth']
+        depth = cfg['deep']  # Changed from depth to deep
 
         # ✅ TRUE STORAGE AISLE COUNT
         n = num_aisles * depth

@@ -27,13 +27,13 @@ def test_basic_warehouse():
         "workstation_configs": [
             {
                 "workstation_index": 0,
-                "aisle_width": 500,
-                "aisle_width_unit": "cm",
+                "aisle_space": 500,  # Changed from aisle_width to aisle_space
+                "aisle_space_unit": "cm",  # Changed from aisle_width_unit to aisle_space_unit
                 "left_side_config": {
                     "num_floors": 3,
                     "num_rows": 2,
                     "num_aisles": 2,
-                    "depth": 1,
+                    "deep": 1,  # Changed from depth to deep
                     "aisle_gaps": [50],  # 1 gap between 2 aisles
                     "deep_gaps": [],    # 0 gaps for depth=1
                     "gap_front": 100,
@@ -46,7 +46,7 @@ def test_basic_warehouse():
                     "num_floors": 3,
                     "num_rows": 2,
                     "num_aisles": 2,
-                    "depth": 2,
+                    "deep": 2,  # Changed from depth to deep
                     "aisle_gaps": [50],  # 1 gap between 2 aisles
                     "deep_gaps": [75],   # 1 gap between 2 depths
                     "gap_front": 100,

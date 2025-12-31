@@ -258,6 +258,7 @@ export class WarehouseVisualizerComponent implements OnInit {
 
       const leftSideConfig: any = {
         ...workstation.left_side_config,
+        deep: workstation.left_side_config.depth, // Map depth to deep for backend
         gap_front: leftGapFrontCm,
         gap_back: leftGapBackCm,
         gap_left: leftGapLeftCm,
@@ -269,6 +270,7 @@ export class WarehouseVisualizerComponent implements OnInit {
 
       const rightSideConfig: any = {
         ...workstation.right_side_config,
+        deep: workstation.right_side_config.depth, // Map depth to deep for backend
         gap_front: rightGapFrontCm,
         gap_back: rightGapBackCm,
         gap_left: rightGapLeftCm,
@@ -280,8 +282,8 @@ export class WarehouseVisualizerComponent implements OnInit {
 
       return {
         workstation_index: index,
-        aisle_width: aisleWidthCm,
-        aisle_width_unit: "cm",
+        aisle_space: aisleWidthCm, // Changed from aisle_width to aisle_space
+        aisle_space_unit: "cm", // Changed from aisle_width_unit to aisle_space_unit
         left_side_config: leftSideConfig,
         right_side_config: rightSideConfig,
         pallet_configs: workstation.pallets.map((pallet: any) => ({
