@@ -48,7 +48,7 @@ export class WorkstationConfigComponent implements OnInit, OnChanges {
     
     for (let i = 0; i < numGaps; i++) {
       this.aisleGaps.push({
-        value: this.aisleConfig.custom_gaps[i] || 20,
+        value: this.aisleConfig.aisle_gaps[i] || 20,
         unit: this.aisleConfig.wall_gap_unit || 'cm'
       });
     }
@@ -56,7 +56,7 @@ export class WorkstationConfigComponent implements OnInit, OnChanges {
 
   onAisleConfigChange(): void {
     // Update custom gaps from aisleGaps array, converting each to cm
-    this.aisleConfig.custom_gaps = this.aisleGaps.map(gap =>
+    this.aisleConfig.aisle_gaps = this.aisleGaps.map(gap =>
       this.convertToCm(gap.value, gap.unit)
     );
     
@@ -143,7 +143,7 @@ export class WorkstationConfigComponent implements OnInit, OnChanges {
     }
     
     // Store gaps in cm for backend
-    this.aisleConfig.custom_gaps = this.aisleGaps.map(gap =>
+    this.aisleConfig.aisle_gaps = this.aisleGaps.map(gap =>
       this.convertToCm(gap.value, gap.unit)
     );
     this.onAisleConfigChange();

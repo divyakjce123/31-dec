@@ -29,8 +29,9 @@ export interface SideAisleConfig {
   num_floors: number;  // Y_position (floors)
   num_rows: number;    // X_position (rows)
   num_aisles: number;  // Number of horizontal aisles
-  depth: number;       // Number of Deep (depth dimension) - frontend uses depth, maps to deep for backend
-  custom_gaps: number[];  // Gaps between aisles: (num_aisles * depth) - 1 gaps
+  depth: number; 
+  depth_gaps: number[];       // Number of Deep (depth dimension) - frontend uses depth, maps to deep for backend
+  aisle_gaps: number[];  
   gap_front: number;
   gap_back: number;
   gap_left: number;
@@ -80,7 +81,7 @@ export interface AisleIndices {
 
 export interface AisleData {
   id: string;
-  type?: string;  // "storage_aisle" or "central_aisle" or "workstation_gap"
+  type?: string;  // "storage_aisle" or "central_aisle" or "workstation_gap" or "aisle_gap" or "deep_gap"
   side?: string;  // "left" or "right" for storage aisles
   position: { x: number; y: number; z: number };
   dimensions: { length: number; width: number; height: number };

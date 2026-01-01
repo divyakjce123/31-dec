@@ -120,83 +120,154 @@ class WarehouseCalculator:
         ws_index,
         side_name
     ):
+        # Extract wall gaps
         gf = self.to_cm(cfg['gap_front'], cfg['wall_gap_unit'])
         gb = self.to_cm(cfg['gap_back'], cfg['wall_gap_unit'])
         gl = self.to_cm(cfg['gap_left'], cfg['wall_gap_unit'])
         gr = self.to_cm(cfg['gap_right'], cfg['wall_gap_unit'])
 
-        avail_w = side_width - gl - gr
-        avail_l = side_length - gf - gb
+        # Calculate available dimensions
+        available_width = side_width - gl - gr
+        available_length = side_length - gf - gb
 
         rows = cfg['num_rows']
         floors = cfg['num_floors']
-        num_aisles = cfg['num_aisles']
-        depth = cfg['deep']  # Changed from depth to deep
+        num_aisle = cfg['num_aisles']
+        num_deep = cfg['deep']
 
-        # ✅ TRUE STORAGE AISLE COUNT
-        n = num_aisles * depth
-
-        # Handle aisle gaps and deep gaps separately
+        # Extract gaps
         aisle_gaps = [self.to_cm(g, cfg['wall_gap_unit']) for g in cfg.get('aisle_gaps', [])]
         deep_gaps = [self.to_cm(g, cfg['wall_gap_unit']) for g in cfg.get('deep_gaps', [])]
         
         # Pad gaps arrays to correct length
-        aisle_gaps += [0.0] * max(0, (num_aisles - 1) - len(aisle_gaps))
-        deep_gaps += [0.0] * max(0, (depth - 1) - len(deep_gaps))
+        aisle_gaps += [0.0] * max(0, (num_aisle - 1) - len(aisle_gaps))
+        deep_gaps += [0.0] * max(0, (num_deep - 1) - len(deep_gaps))
         
         # Calculate total gaps
-        total_aisle_gaps = sum(aisle_gaps) if num_aisles > 1 else 0
-        total_deep_gaps = sum(deep_gaps) if depth > 1 else 0
-        total_gaps = total_aisle_gaps + total_deep_gaps
+        total_aisles_gaps = sum(aisle_gaps) if num_aisle > 1 else 0
+        total_deep_gaps = sum(deep_gaps) if num_deep > 1 else 0
+        t = total_aisles_gaps + total_deep_gaps
 
-        aisle_width = (avail_w - total_gaps) / n if n > 0 else 0
-        aisle_length = avail_l / rows if rows > 0 else 0
-        aisle_height = side_height / floors if floors > 0 else 0
+        # Calculate total storage aisles per side
+        n_aisle = num_aisle * num_deep
+
+        # Calculate dimensions for each storage aisle
+        n_aisle_length = available_length / rows if rows > 0 else 0
+        n_aisle_width = (available_width - t) / n_aisle if n_aisle > 0 else 0
+        n_aisle_height = side_height / floors if floors > 0 else 0
 
         aisles = []
 
+        # Generate storage aisles with explicit gap objects for visualization
         for r in range(rows):
-            y = gf + r * aisle_length
+            y = gf + r * n_aisle_length
             current_x = start_x + gl
-            aisle_no = 1
+            storage_aisle_counter = 1  # Sequential storage aisle counter
 
-            for d in range(depth):
-                # Add deep gap before this depth (except for first depth)
-                if d > 0 and d - 1 < len(deep_gaps):
-                    current_x += deep_gaps[d - 1]
-                
-                for a in range(num_aisles):
-                    # Add aisle gap before this aisle (except for first aisle)
-                    if a > 0 and a - 1 < len(aisle_gaps):
-                        current_x += aisle_gaps[a - 1]
+            # Process each aisle group (num_aisle groups)
+            for aisle_id in range(1, num_aisle + 1):
+                # Process each depth within this aisle group
+                for deep_idx in range(num_deep):
+                    # Add deep gap before this depth (except for first depth in this aisle group)
+                    if deep_idx > 0 and deep_idx - 1 < len(deep_gaps):
+                        gap_size = deep_gaps[deep_idx - 1]
+                        
+                        # Create explicit gap object for visualization as empty space
+                        for f in range(floors):
+                            aisles.append({
+                                "id": f"deep-gap-{ws_index}-{side_name}-{r}-{aisle_id}-{deep_idx}-{f}",
+                                "type": "deep_gap",
+                                "side": side_name,
+                                "position": {
+                                    "x": current_x,
+                                    "y": y,
+                                    "z": f * n_aisle_height
+                                },
+                                "dimensions": {
+                                    "width": gap_size,
+                                    "length": n_aisle_length,
+                                    "height": n_aisle_height
+                                },
+                                "gap_info": {
+                                    "gap_type": "deep_gap",
+                                    "size": gap_size,
+                                    "between_storage_aisles": [storage_aisle_counter - 1, storage_aisle_counter],
+                                    "description": f"Deep gap {gap_size}cm between storage aisle {storage_aisle_counter - 1} and {storage_aisle_counter}"
+                                },
+                                "indices": {
+                                    "row": r + 1,
+                                    "floor": f + 1,
+                                    "aisle_group": aisle_id,
+                                    "depth_gap_index": deep_idx
+                                },
+                                "label": f"Deep Gap {gap_size}cm"
+                            })
+                        current_x += gap_size
 
+                    # Generate storage aisles for all floors at this position
                     for f in range(floors):
                         aisles.append({
-                            "id": f"aisle-{ws_index}-{side_name}-{r}-{aisle_no}-{f}",
+                            "id": f"aisle-{ws_index}-{side_name}-{r}-{storage_aisle_counter}-{f}",
                             "type": "storage_aisle",
                             "side": side_name,
                             "position": {
                                 "x": current_x,
                                 "y": y,
-                                "z": f * aisle_height
+                                "z": f * n_aisle_height
                             },
                             "dimensions": {
-                                "width": aisle_width,
-                                "length": aisle_length,
-                                "height": aisle_height
+                                "width": n_aisle_width,
+                                "length": n_aisle_length,
+                                "height": n_aisle_height
                             },
                             "indices": {
                                 "row": r + 1,
                                 "floor": f + 1,
-                                "col": aisle_no,               # ✅ GLOBAL column index (1 → n)
-                                "depth": d + 1,
-                                "aisle": a + 1 if num_aisles > 1 else 1
+                                "col": storage_aisle_counter,  # Sequential storage aisle number
+                                "depth": deep_idx + 1,
+                                "aisle": aisle_id  # Aisle group ID (shared by num_deep consecutive storage aisles)
                             },
+                            "label": f"Aisle {aisle_id}",  # Label based on aisle group
                             "pallets": []
                         })
 
-                    current_x += aisle_width
-                    aisle_no += 1
+                    current_x += n_aisle_width
+                    storage_aisle_counter += 1
+
+                # Add aisle gap after this aisle group (except for last aisle group)
+                if aisle_id < num_aisle and aisle_id - 1 < len(aisle_gaps):
+                    gap_size = aisle_gaps[aisle_id - 1]
+                    
+                    # Create explicit gap object for visualization as empty space
+                    for f in range(floors):
+                        aisles.append({
+                            "id": f"aisle-gap-{ws_index}-{side_name}-{r}-{aisle_id}-{f}",
+                            "type": "aisle_gap",
+                            "side": side_name,
+                            "position": {
+                                "x": current_x,
+                                "y": y,
+                                "z": f * n_aisle_height
+                            },
+                            "dimensions": {
+                                "width": gap_size,
+                                "length": n_aisle_length,
+                                "height": n_aisle_height
+                            },
+                            "gap_info": {
+                                "gap_type": "aisle_gap",
+                                "size": gap_size,
+                                "between_aisle_groups": [aisle_id, aisle_id + 1],
+                                "description": f"Aisle gap {gap_size}cm between Aisle {aisle_id} and Aisle {aisle_id + 1}"
+                            },
+                            "indices": {
+                                "row": r + 1,
+                                "floor": f + 1,
+                                "aisle_gap_index": aisle_id
+                            },
+                            "label": f"Aisle Gap {gap_size}cm"
+                        })
+                    current_x += gap_size
 
         return aisles
 

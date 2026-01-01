@@ -737,6 +737,9 @@ export class VisualizationComponent
     } else if (aisleType === 'storage_aisle') {
       // Draw storage aisle with transparent blue appearance
       this.drawStorageAisle(group, aisle);
+    } else if (aisleType === 'aisle_gap' || aisleType === 'deep_gap') {
+      // Draw gaps as visible empty spaces with distinct styling
+      this.drawGapAisle(group, aisle);
     }
   }
 
@@ -812,6 +815,70 @@ export class VisualizationComponent
     });
     const wireframe = new THREE.LineSegments(edges, edgeMaterial);
     aisleGroup.add(wireframe);
+
+    group.add(aisleGroup);
+  }
+
+  private drawGapAisle(group: THREE.Group, aisle: AisleData) {
+    const { width, length, height } = aisle.dimensions;
+    const { x, y, z } = aisle.position;
+
+    if (width <= 0 || length <= 0 || height <= 0) return; // Skip zero-dimension gaps
+
+    const aisleGroup = new THREE.Group();
+    aisleGroup.name = `gap-${aisle.id}`;
+    
+    aisleGroup.position.set(
+      x + width / 2,
+      y + length / 2,
+      z + height / 2
+    );
+
+    // Determine gap color based on type
+    const isDeepGap = aisle.type === 'deep_gap';
+    const gapColor = isDeepGap ? 0xff9800 : 0x4caf50; // Orange for deep gaps, Green for aisle gaps
+    const labelColor = isDeepGap ? '#ff9800' : '#4caf50';
+    const labelBorderColor = isDeepGap ? '#f57c00' : '#388e3c';
+
+    // 1. Semi-transparent fill to show the gap space
+    const geometry = new THREE.BoxGeometry(width, length, height);
+    const material = new THREE.MeshBasicMaterial({
+      color: gapColor,
+      transparent: true,
+      opacity: 0.15,
+      side: THREE.DoubleSide
+    });
+    const gapFill = new THREE.Mesh(geometry, material);
+    aisleGroup.add(gapFill);
+
+    // 2. Dashed outline to clearly define the gap boundaries
+    const edges = new THREE.EdgesGeometry(geometry);
+    const edgeMaterial = new THREE.LineDashedMaterial({ 
+      color: gapColor,
+      dashSize: 20,
+      gapSize: 10,
+      linewidth: 2
+    });
+    const wireframe = new THREE.LineSegments(edges, edgeMaterial);
+    wireframe.computeLineDistances(); // Required for dashed lines
+    aisleGroup.add(wireframe);
+
+    // 3. Add gap label
+    const gapInfo = (aisle as any).gap_info;
+    const gapSize = gapInfo?.size || width;
+    const gapType = isDeepGap ? 'Deep Gap' : 'Aisle Gap';
+    
+    const label = this.createTextSprite(`${gapType} ${gapSize}cm`, {
+      backgroundColor: labelColor,
+      borderColor: labelBorderColor,
+      color: '#ffffff',
+      fontSize: 18
+    });
+    
+    // Position label at the center-top of the gap
+    label.position.set(0, 0, height / 2 + 30);
+    label.scale.set(120, 30, 1);
+    aisleGroup.add(label);
 
     group.add(aisleGroup);
   }
